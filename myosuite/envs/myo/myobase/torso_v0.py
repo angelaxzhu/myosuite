@@ -1,4 +1,5 @@
 import collections
+from myosuite.envs.env_variants import _kwargs
 from myosuite.utils import gym
 import numpy as np
 
@@ -42,7 +43,7 @@ class TorsoEnvV0(BaseV0):
             reset_type = "init",            # none; init; random
             obs_keys:list = DEFAULT_OBS_KEYS,
             weighted_reward_keys:dict = DEFAULT_RWD_KEYS_AND_WEIGHTS,
-            pose_thd = 0.25,
+            pose_thd = 1.9, # 
             **kwargs,
         ):
         self.reset_type = reset_type
@@ -83,7 +84,8 @@ class TorsoEnvV0(BaseV0):
         obs_dict['qpos'] = sim.data.qpos[:].copy()
         obs_dict['qvel'] = sim.data.qvel[:].copy()*self.dt
         obs_dict['act'] = sim.data.act[:].copy() if sim.model.na>0 else np.zeros_like(obs_dict['qpos'])
-        obs_dict['pose_err'] = self.target_jnt_value - obs_dict['qpos'][:21]
+        #TD 
+        obs_dict['pose_err'] = self.target_jnt_value - obs_dict['qpos'][:21] #= [-0.7, 0, 0]  - [sim.data.qpos['flex_ex'], lat, axis ]
         return obs_dict
 
     def get_reward_dict(self, obs_dict):
