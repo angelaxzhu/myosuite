@@ -1,0 +1,62 @@
+warning: LF will be replaced by CRLF in eval_test.py.
+The file will have its original line endings in your working directory
+warning: LF will be replaced by CRLF in test_script.py.
+The file will have its original line endings in your working directory
+diff --git a/eval_test.py b/eval_test.py
+index 7653ada..dd7b02a 100644
+--- a/eval_test.py
++++ b/eval_test.py
+@@ -62,9 +62,9 @@ class ActionSpaceWrapper(gym.ActionWrapper):
+             full_action[indices] = action[i]
+         return full_action
+ 
+-env_name = 'myoTorsoFixed-v0'
++env_name = 'myoTorsoExoFixed-v0'
+ 
+-model_num = '2025_03_20_16_19_277'
++model_num = '2025_03_20_20_54_397'
+ #model = PPO.load(path+'/standingBalance/policy_best_model'+ '/'+ env_name + '/' + model_num + r'/best_model')
+ model = SAC.load(path+'/standingBalance/policy_best_model'+ '/'+ env_name + '/' + model_num + r'/best_model')
+ 
+diff --git a/myosuite/envs/myo/myobase/__init__.py b/myosuite/envs/myo/myobase/__init__.py
+index 2503e19..7719bf0 100644
+--- a/myosuite/envs/myo/myobase/__init__.py
++++ b/myosuite/envs/myo/myobase/__init__.py
+@@ -500,7 +500,7 @@ register_env_with_variants(id='myoTorsoExoFixed-v0',
+         kwargs={
+             'model_path': curr_dir+'/../../../simhive/myo_sim/back/myoTorso_exosuit.xml',
+             'target_jnt_range': {'LB_wrapjnt_t1':(0, 0),'LB_wrapjnt_t2':(0, 0),'LB_wrapjnt_r3':(0, 0),
+-                                 'flex_extension':(-0, 0),'lat_bending':(-0.1, 0.1),'axial_rotation':(0, 0),
++                                 'flex_extension':(-0, 0),'lat_bending':(-0, 0),'axial_rotation':(0, 0), #was -0.1, 0.1
+                                  'Abs_t1':(0, 0),'Abs_t2':(0,0),'Abs_r3':(0, 0),
+                                  'L4_L5_FE':(-1, 1),'L4_L5_LB':(0, 0),'L4_L5_AR':(0, 0),
+                                  'L3_L4_FE':(-1, 1),'L3_L4_LB':(0, 0),'L3_L4_AR':(0, 0),
+diff --git a/myosuite/envs/myo/myobase/torso_v0.py b/myosuite/envs/myo/myobase/torso_v0.py
+index 2840fca..29fa11f 100644
+--- a/myosuite/envs/myo/myobase/torso_v0.py
++++ b/myosuite/envs/myo/myobase/torso_v0.py
+@@ -85,7 +85,9 @@ class TorsoEnvV0(BaseV0):
+         obs_dict['qvel'] = sim.data.qvel[:].copy()*self.dt
+         obs_dict['act'] = sim.data.act[:].copy() if sim.model.na>0 else np.zeros_like(obs_dict['qpos'])
+         #TD 
+-        obs_dict['pose_err'] = self.target_jnt_value - obs_dict['qpos'][:21] #= [-0.7, 0, 0]  - [sim.data.qpos['flex_ex'], lat, axis ]
++        #obs_dict['pose_err'] = self.target_jnt_value - obs_dict['qpos'][:21] #= [-0.7, 0, 0]  - [sim.data.qpos['flex_ex'], lat, axis ]
++        obs_dict['pose_err'] = np.array([0,0,0]) - np.array([sim.data.qpos[3],sim.data.qpos[4],sim.data.qpos[5]])
++        
+         return obs_dict
+ 
+     def get_reward_dict(self, obs_dict):
+diff --git a/test_script.py b/test_script.py
+index 721aed9..69a0cb2 100644
+--- a/test_script.py
++++ b/test_script.py
+@@ -19,7 +19,8 @@ parser = argparse.ArgumentParser(description="Main script to train an agent")
+ 
+ parser.add_argument("--seed", type=int, default=0, help="Seed for random number generator")
+ parser.add_argument("--num_envs", type=int, default=1, help="Number of parallel environments")
+-parser.add_argument("--env_name", type=str, default='myoTorsoFixed-v0', help="environment name")
++#parser.add_argument("--env_name", type=str, default='myoTorsoFixed-v0', help="environment name")
++parser.add_argument("--env_name", type=str, default='myoTorsoExoFixed-v0', help="environment name")
+ parser.add_argument("--group", type=str, default='testing', help="group name")
+ parser.add_argument("--learning_rate", type=float, default=0.0003, help="Learning rate for the optimizer")
+ parser.add_argument("--clip_range", type=float, default=0.2, help="Clip range for the policy gradient update")

@@ -62,9 +62,9 @@ class ActionSpaceWrapper(gym.ActionWrapper):
             full_action[indices] = action[i]
         return full_action
 
-env_name = 'myoTorsoFixed-v0'
+env_name = 'myoTorsoExoFixed-v0'
 
-model_num = '2025_03_20_16_19_277'
+model_num = '2025_03_24_14_42_277'
 #model = PPO.load(path+'/standingBalance/policy_best_model'+ '/'+ env_name + '/' + model_num + r'/best_model')
 model = SAC.load(path+'/standingBalance/policy_best_model'+ '/'+ env_name + '/' + model_num + r'/best_model')
 

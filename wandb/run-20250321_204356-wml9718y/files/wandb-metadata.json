@@ -1,0 +1,54 @@
+{
+  "os": "Windows-10-10.0.26100-SP0",
+  "python": "CPython 3.8.20",
+  "startedAt": "2025-03-22T00:43:57.023382Z",
+  "args": [
+    "--group",
+    "myoback_1",
+    "--num_envs",
+    "8",
+    "--learning_rate",
+    "0.0002",
+    "--clip_range",
+    "0.1",
+    "--seed",
+    "7"
+  ],
+  "program": "test_script.py",
+  "codePath": "test_script.py",
+  "git": {
+    "remote": "https://github.com/angelaxzhu/myosuite.git",
+    "commit": "919a6a6b8672034ed04f0af3376f7724aae74dbb"
+  },
+  "email": "zangelato@gmail.com",
+  "root": "C:\\Users\\angel\\Documents\\GitHub_McGill\\myosuite",
+  "host": "LAPTOP-BOQTQR5C",
+  "executable": "C:\\Users\\angel\\miniconda3\\envs\\MyoSuite\\python.exe",
+  "codePathLocal": "test_script.py",
+  "cpu_count": 4,
+  "cpu_count_logical": 8,
+  "gpu": "NVIDIA GeForce GTX 1650 with Max-Q Design",
+  "gpu_count": 1,
+  "disk": {
+    "/": {
+      "total": "510350659584",
+      "used": "387897081856"
+    }
+  },
+  "memory": {
+    "total": "16968355840"
+  },
+  "cpu": {
+    "count": 4,
+    "countLogical": 8
+  },
+  "gpu_nvidia": [
+    {
+      "name": "NVIDIA GeForce GTX 1650 with Max-Q Design",
+      "memoryTotal": "4294967296",
+      "cudaCores": 1024,
+      "architecture": "Turing"
+    }
+  ],
+  "cudaVersion": "12.5"
+}
