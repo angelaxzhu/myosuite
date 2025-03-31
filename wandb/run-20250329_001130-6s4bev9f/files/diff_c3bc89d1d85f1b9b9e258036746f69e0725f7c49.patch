@@ -1,0 +1,177 @@
+warning: LF will be replaced by CRLF in eval_test.py.
+The file will have its original line endings in your working directory
+diff --git a/eval_test.py b/eval_test.py
+index 3d0ce88..ffdddbc 100644
+--- a/eval_test.py
++++ b/eval_test.py
+@@ -64,7 +64,7 @@ class ActionSpaceWrapper(gym.ActionWrapper):
+ 
+ env_name = 'myoTorsoExoFixed-v0'
+ 
+-model_num = '2025_03_24_14_42_277'
++model_num = '2025_03_20_21_15_307'
+ #model = PPO.load(path+'/standingBalance/policy_best_model'+ '/'+ env_name + '/' + model_num + r'/best_model')
+ model = SAC.load(path+'/standingBalance/policy_best_model'+ '/'+ env_name + '/' + model_num + r'/best_model')
+ 
+diff --git a/myosuite/envs/env_base.py b/myosuite/envs/env_base.py
+index aa47d25..3e906e1 100644
+--- a/myosuite/envs/env_base.py
++++ b/myosuite/envs/env_base.py
+@@ -278,9 +278,9 @@ class MujocoEnv(gym.Env, gym.utils.EzPickle, ObsVecDict):
+ 
+     @implement_for("gymnasium")
+     def forward(self, **kwargs):
+-        obs, reward, done, info = self._forward(**kwargs)
++        obs, reward, done, info, obs_dict = self._forward(**kwargs)
+         terminal = done
+-        return obs, reward, terminal, False, info
++        return obs, reward, terminal, False, info, obs_dict
+ 
+     def _forward(self, **kwargs):
+         """
+@@ -305,7 +305,7 @@ class MujocoEnv(gym.Env, gym.utils.EzPickle, ObsVecDict):
+         env_info = self.get_env_infos()
+ 
+         # returns obs(t+1), rwd(t+1), done(t+1), info(t+1)
+-        return obs, env_info['rwd_'+self.rwd_mode], bool(env_info['done']), env_info
++        return obs, env_info['rwd_'+self.rwd_mode], bool(env_info['done']), env_info, self.obs_dict #added obs_dci
+ 
+ 
+     def get_obs(self, update_proprioception=True, update_exteroception=False):
+diff --git a/myosuite/envs/myo/myobase/__init__.py b/myosuite/envs/myo/myobase/__init__.py
+index 64198fa..098c22a 100644
+--- a/myosuite/envs/myo/myobase/__init__.py
++++ b/myosuite/envs/myo/myobase/__init__.py
+@@ -500,9 +500,9 @@ register_env_with_variants(id='myoTorsoExoFixed-v0',
+         kwargs={
+             'model_path': curr_dir+'/../../../simhive/myo_sim/back/myoTorso_exosuit.xml',
+             'target_jnt_range': {'LB_wrapjnt_t1':(0, 0),'LB_wrapjnt_t2':(0, 0),'LB_wrapjnt_r3':(0, 0),
+-                                 'flex_extension':(-1.39626, -1.39626),'lat_bending':(-0, 0),'axial_rotation':(0, 0), #was -0.1, 0.1
++                                 'flex_extension':(0, 0),'lat_bending':(-0, 0),'axial_rotation':(0, 0), #was -0.1, 0.1
+                                  'Abs_t1':(0, 0),'Abs_t2':(0,0),'Abs_r3':(0, 0),
+-                                 'L4_L5_FE':(-1, 1),'L4_L5_LB':(0, 0),'L4_L5_AR':(0, 0),
++                                 'L4_L5_FE':(-1, 1),'L4_L5_LB':(0, 0),'L4_L5_AR':(0, 0), #all FE were -1 to 1
+                                  'L3_L4_FE':(-1, 1),'L3_L4_LB':(0, 0),'L3_L4_AR':(0, 0),
+                                  'L2_L3_FE':(-1, 1),'L2_L3_LB':(0, 0),'L2_L3_AR':(0, 0),
+                                  'L1_L2_FE':(-1, 1),'L1_L2_LB':(0, 0),'L1_L2_AR':(0, 0),},
+diff --git a/myosuite/envs/myo/myobase/torso_v0.py b/myosuite/envs/myo/myobase/torso_v0.py
+index 9cbf1b7..d8737c0 100644
+--- a/myosuite/envs/myo/myobase/torso_v0.py
++++ b/myosuite/envs/myo/myobase/torso_v0.py
+@@ -85,9 +85,13 @@ class TorsoEnvV0(BaseV0):
+         obs_dict['qvel'] = sim.data.qvel[:].copy()*self.dt
+         obs_dict['act'] = sim.data.act[:].copy() if sim.model.na>0 else np.zeros_like(obs_dict['qpos'])
+         #TD 
+-        #obs_dict['pose_err'] = self.target_jnt_value - obs_dict['qpos'][:21] #= [-0.7, 0, 0]  - [sim.data.qpos['flex_ex'], lat, axis ]
+-        obs_dict['pose_err'] = np.array([-1.39626,0,0]) - np.array([sim.data.qpos[3],sim.data.qpos[4],sim.data.qpos[5]])
+-        
++        obs_dict['pose_err'] = self.target_jnt_value - obs_dict['qpos'][:21] 
++        # #= [-0.7, 0, 0]  - [sim.data.qpos['flex_ex'], lat, axis ]
++        #obs_dict['pose_err'] = np.array([-1.39626,0,0]) - np.array([sim.data.qpos[3],sim.data.qpos[4],sim.data.qpos[5]])
++        #obs_dict['pose_err'] = np.array([-1.39626,0,0]) - np.array([obs_dict['qpos'][3],obs_dict['qpos'][4],obs_dict['qpos'][5]])
++        #ADDED
++        #obs_dict['ctrl'] = sim.data.ctrl[:].copy()
++        #obs_dict['act_f'] = sim.data.actuator_force[:].copy()
+         return obs_dict
+ 
+     def get_reward_dict(self, obs_dict):
+diff --git a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_20_22_26_227/best_model.zip b/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_20_22_26_227/best_model.zip
+deleted file mode 100644
+index 4d67333..0000000
+Binary files a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_20_22_26_227/best_model.zip and /dev/null differ
+diff --git a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_20_22_26_227/evaluations.npz b/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_20_22_26_227/evaluations.npz
+deleted file mode 100644
+index a88de0e..0000000
+Binary files a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_20_22_26_227/evaluations.npz and /dev/null differ
+diff --git a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_10_56_197/best_model.zip b/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_10_56_197/best_model.zip
+deleted file mode 100644
+index 2e95a5a..0000000
+Binary files a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_10_56_197/best_model.zip and /dev/null differ
+diff --git a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_10_56_197/evaluations.npz b/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_10_56_197/evaluations.npz
+deleted file mode 100644
+index 70fbbe7..0000000
+Binary files a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_10_56_197/evaluations.npz and /dev/null differ
+diff --git a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_12_47_367/best_model.zip b/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_12_47_367/best_model.zip
+deleted file mode 100644
+index 9b11769..0000000
+Binary files a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_12_47_367/best_model.zip and /dev/null differ
+diff --git a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_12_47_367/evaluations.npz b/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_12_47_367/evaluations.npz
+deleted file mode 100644
+index 1b00bcc..0000000
+Binary files a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_12_47_367/evaluations.npz and /dev/null differ
+diff --git a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_14_43_037/best_model.zip b/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_14_43_037/best_model.zip
+deleted file mode 100644
+index 19582f7..0000000
+Binary files a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_14_43_037/best_model.zip and /dev/null differ
+diff --git a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_14_43_037/evaluations.npz b/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_14_43_037/evaluations.npz
+deleted file mode 100644
+index a27ec5f..0000000
+Binary files a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_14_43_037/evaluations.npz and /dev/null differ
+diff --git a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_20_43_567/best_model.zip b/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_20_43_567/best_model.zip
+deleted file mode 100644
+index 1be5aac..0000000
+Binary files a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_20_43_567/best_model.zip and /dev/null differ
+diff --git a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_20_43_567/evaluations.npz b/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_20_43_567/evaluations.npz
+deleted file mode 100644
+index f47a72d..0000000
+Binary files a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_21_20_43_567/evaluations.npz and /dev/null differ
+diff --git a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_24_14_42_277/best_model.zip b/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_24_14_42_277/best_model.zip
+deleted file mode 100644
+index 81bd01b..0000000
+Binary files a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_24_14_42_277/best_model.zip and /dev/null differ
+diff --git a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_24_14_42_277/evaluations.npz b/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_24_14_42_277/evaluations.npz
+deleted file mode 100644
+index 16b745b..0000000
+Binary files a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_24_14_42_277/evaluations.npz and /dev/null differ
+diff --git a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_25_12_03_017/best_model.zip b/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_25_12_03_017/best_model.zip
+deleted file mode 100644
+index a4c02a8..0000000
+Binary files a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_25_12_03_017/best_model.zip and /dev/null differ
+diff --git a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_25_12_03_017/evaluations.npz b/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_25_12_03_017/evaluations.npz
+deleted file mode 100644
+index b6ed9d7..0000000
+Binary files a/standingBalance/policy_best_model/myoTorsoExoFixed-v0/2025_03_25_12_03_017/evaluations.npz and /dev/null differ
+diff --git a/standingBalance/policy_best_model/myoTorsoFixed-v0/2025_03_20_13_38_447/best_model.zip b/standingBalance/policy_best_model/myoTorsoFixed-v0/2025_03_20_13_38_447/best_model.zip
+deleted file mode 100644
+index fb16a51..0000000
+Binary files a/standingBalance/policy_best_model/myoTorsoFixed-v0/2025_03_20_13_38_447/best_model.zip and /dev/null differ
+diff --git a/standingBalance/policy_best_model/myoTorsoFixed-v0/2025_03_20_13_38_447/evaluations.npz b/standingBalance/policy_best_model/myoTorsoFixed-v0/2025_03_20_13_38_447/evaluations.npz
+deleted file mode 100644
+index 318d64a..0000000
+Binary files a/standingBalance/policy_best_model/myoTorsoFixed-v0/2025_03_20_13_38_447/evaluations.npz and /dev/null differ
+diff --git a/standingBalance/policy_best_model/myoTorsoFixed-v0/2025_03_20_16_11_397/best_model.zip b/standingBalance/policy_best_model/myoTorsoFixed-v0/2025_03_20_16_11_397/best_model.zip
+deleted file mode 100644
+index c584245..0000000
+Binary files a/standingBalance/policy_best_model/myoTorsoFixed-v0/2025_03_20_16_11_397/best_model.zip and /dev/null differ
+diff --git a/standingBalance/policy_best_model/myoTorsoFixed-v0/2025_03_20_16_11_397/evaluations.npz b/standingBalance/policy_best_model/myoTorsoFixed-v0/2025_03_20_16_11_397/evaluations.npz
+deleted file mode 100644
+index 625c15d..0000000
+Binary files a/standingBalance/policy_best_model/myoTorsoFixed-v0/2025_03_20_16_11_397/evaluations.npz and /dev/null differ
+diff --git a/videos/myoTorsoExoFixed-v0/2025_03_20_22_26_227side_video.mp4 b/videos/myoTorsoExoFixed-v0/2025_03_20_22_26_227side_video.mp4
+deleted file mode 100644
+index 69d7c26..0000000
+Binary files a/videos/myoTorsoExoFixed-v0/2025_03_20_22_26_227side_video.mp4 and /dev/null differ
+diff --git a/videos/myoTorsoExoFixed-v0/2025_03_21_10_56_197side_video.mp4 b/videos/myoTorsoExoFixed-v0/2025_03_21_10_56_197side_video.mp4
+deleted file mode 100644
+index 9e12814..0000000
+Binary files a/videos/myoTorsoExoFixed-v0/2025_03_21_10_56_197side_video.mp4 and /dev/null differ
+diff --git a/videos/myoTorsoExoFixed-v0/2025_03_21_12_47_367side_video.mp4 b/videos/myoTorsoExoFixed-v0/2025_03_21_12_47_367side_video.mp4
+deleted file mode 100644
+index d4de8d4..0000000
+Binary files a/videos/myoTorsoExoFixed-v0/2025_03_21_12_47_367side_video.mp4 and /dev/null differ
+diff --git a/videos/myoTorsoExoFixed-v0/2025_03_21_14_43_037side_video.mp4 b/videos/myoTorsoExoFixed-v0/2025_03_21_14_43_037side_video.mp4
+deleted file mode 100644
+index 06960ce..0000000
+Binary files a/videos/myoTorsoExoFixed-v0/2025_03_21_14_43_037side_video.mp4 and /dev/null differ
+diff --git a/videos/myoTorsoExoFixed-v0/2025_03_21_20_43_567side_video.mp4 b/videos/myoTorsoExoFixed-v0/2025_03_21_20_43_567side_video.mp4
+deleted file mode 100644
+index f30b382..0000000
+Binary files a/videos/myoTorsoExoFixed-v0/2025_03_21_20_43_567side_video.mp4 and /dev/null differ
+diff --git a/videos/myoTorsoExoFixed-v0/2025_03_24_14_42_277side_video.mp4 b/videos/myoTorsoExoFixed-v0/2025_03_24_14_42_277side_video.mp4
+deleted file mode 100644
+index edf1f09..0000000
+Binary files a/videos/myoTorsoExoFixed-v0/2025_03_24_14_42_277side_video.mp4 and /dev/null differ
+diff --git a/videos/myoTorsoFixed-v0/2025_03_20_13_38_447side_video.mp4 b/videos/myoTorsoFixed-v0/2025_03_20_13_38_447side_video.mp4
+deleted file mode 100644
+index e6a1b0e..0000000
+Binary files a/videos/myoTorsoFixed-v0/2025_03_20_13_38_447side_video.mp4 and /dev/null differ

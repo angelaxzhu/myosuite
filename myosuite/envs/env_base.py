@@ -278,9 +278,9 @@ class MujocoEnv(gym.Env, gym.utils.EzPickle, ObsVecDict):
 
     @implement_for("gymnasium")
     def forward(self, **kwargs):
-        obs, reward, done, info = self._forward(**kwargs)
+        obs, reward, done, info, obs_dict = self._forward(**kwargs)
         terminal = done
-        return obs, reward, terminal, False, info
+        return obs, reward, terminal, False, info, obs_dict
 
     def _forward(self, **kwargs):
         """
@@ -305,7 +305,7 @@ class MujocoEnv(gym.Env, gym.utils.EzPickle, ObsVecDict):
         env_info = self.get_env_infos()
 
         # returns obs(t+1), rwd(t+1), done(t+1), info(t+1)
-        return obs, env_info['rwd_'+self.rwd_mode], bool(env_info['done']), env_info
+        return obs, env_info['rwd_'+self.rwd_mode], bool(env_info['done']), env_info, self.obs_dict #added obs_dci
 
 
     def get_obs(self, update_proprioception=True, update_exteroception=False):

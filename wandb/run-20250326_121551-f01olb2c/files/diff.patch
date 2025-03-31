@@ -1,0 +1,49 @@
+warning: LF will be replaced by CRLF in eval_test.py.
+The file will have its original line endings in your working directory
+diff --git a/eval_test.py b/eval_test.py
+index 3d0ce88..156d808 100644
+--- a/eval_test.py
++++ b/eval_test.py
+@@ -64,7 +64,7 @@ class ActionSpaceWrapper(gym.ActionWrapper):
+ 
+ env_name = 'myoTorsoExoFixed-v0'
+ 
+-model_num = '2025_03_24_14_42_277'
++model_num = '2025_03_26_09_40_407'
+ #model = PPO.load(path+'/standingBalance/policy_best_model'+ '/'+ env_name + '/' + model_num + r'/best_model')
+ model = SAC.load(path+'/standingBalance/policy_best_model'+ '/'+ env_name + '/' + model_num + r'/best_model')
+ 
+diff --git a/myosuite/envs/myo/myobase/__init__.py b/myosuite/envs/myo/myobase/__init__.py
+index 64198fa..ee24bfc 100644
+--- a/myosuite/envs/myo/myobase/__init__.py
++++ b/myosuite/envs/myo/myobase/__init__.py
+@@ -500,9 +500,9 @@ register_env_with_variants(id='myoTorsoExoFixed-v0',
+         kwargs={
+             'model_path': curr_dir+'/../../../simhive/myo_sim/back/myoTorso_exosuit.xml',
+             'target_jnt_range': {'LB_wrapjnt_t1':(0, 0),'LB_wrapjnt_t2':(0, 0),'LB_wrapjnt_r3':(0, 0),
+-                                 'flex_extension':(-1.39626, -1.39626),'lat_bending':(-0, 0),'axial_rotation':(0, 0), #was -0.1, 0.1
++                                 'flex_extension':(-0.7, -0.7),'lat_bending':(-0, 0),'axial_rotation':(0, 0), #was -0.1, 0.1
+                                  'Abs_t1':(0, 0),'Abs_t2':(0,0),'Abs_r3':(0, 0),
+-                                 'L4_L5_FE':(-1, 1),'L4_L5_LB':(0, 0),'L4_L5_AR':(0, 0),
++                                 'L4_L5_FE':(-1, 1),'L4_L5_LB':(0, 0),'L4_L5_AR':(0, 0), #all FE were -1 to 1
+                                  'L3_L4_FE':(-1, 1),'L3_L4_LB':(0, 0),'L3_L4_AR':(0, 0),
+                                  'L2_L3_FE':(-1, 1),'L2_L3_LB':(0, 0),'L2_L3_AR':(0, 0),
+                                  'L1_L2_FE':(-1, 1),'L1_L2_LB':(0, 0),'L1_L2_AR':(0, 0),},
+diff --git a/myosuite/envs/myo/myobase/torso_v0.py b/myosuite/envs/myo/myobase/torso_v0.py
+index 9cbf1b7..c99183d 100644
+--- a/myosuite/envs/myo/myobase/torso_v0.py
++++ b/myosuite/envs/myo/myobase/torso_v0.py
+@@ -85,9 +85,10 @@ class TorsoEnvV0(BaseV0):
+         obs_dict['qvel'] = sim.data.qvel[:].copy()*self.dt
+         obs_dict['act'] = sim.data.act[:].copy() if sim.model.na>0 else np.zeros_like(obs_dict['qpos'])
+         #TD 
+-        #obs_dict['pose_err'] = self.target_jnt_value - obs_dict['qpos'][:21] #= [-0.7, 0, 0]  - [sim.data.qpos['flex_ex'], lat, axis ]
+-        obs_dict['pose_err'] = np.array([-1.39626,0,0]) - np.array([sim.data.qpos[3],sim.data.qpos[4],sim.data.qpos[5]])
+-        
++        obs_dict['pose_err'] = self.target_jnt_value - obs_dict['qpos'][:21] 
++        # #= [-0.7, 0, 0]  - [sim.data.qpos['flex_ex'], lat, axis ]
++        #obs_dict['pose_err'] = np.array([-1.39626,0,0]) - np.array([sim.data.qpos[3],sim.data.qpos[4],sim.data.qpos[5]])
++        #obs_dict['pose_err'] = np.array([-1.39626,0,0]) - np.array([obs_dict['qpos'][3],obs_dict['qpos'][4],obs_dict['qpos'][5]])
+         return obs_dict
+ 
+     def get_reward_dict(self, obs_dict):
