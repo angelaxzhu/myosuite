@@ -62,9 +62,9 @@ class ActionSpaceWrapper(gym.ActionWrapper):
             full_action[indices] = action[i]
         return full_action
 
-env_name = 'myoTorsoExoFixed-v0'
+env_name = 'myoTorsoFixed-v0'
 
-model_num = '2025_03_29_00_11_297'
+model_num = '2025_03_20_16_19_277'
 #model = PPO.load(path+'/standingBalance/policy_best_model'+ '/'+ env_name + '/' + model_num + r'/best_model')
 model = SAC.load(path+'/standingBalance/policy_best_model'+ '/'+ env_name + '/' + model_num + r'/best_model')
 
@@ -97,7 +97,7 @@ for _ in tqdm(range(1)):
           if movie:
                   geom_1_indices = np.where(env.unwrapped.sim.model.geom_group == 1)
                   env.unwrapped.sim.model.geom_rgba[geom_1_indices, 3] = 0
-                  frame = env.unwrapped.sim.renderer.render_offscreen(width= 640, height=480,camera_id="front_view")
+                  frame = env.unwrapped.sim.renderer.render_offscreen(width= 640, height=480,camera_id="closer")
                   
                   #frame = (frame).astype(np.uint8)
                   frame = np.flipud(frame)
